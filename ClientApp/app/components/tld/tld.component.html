@@ -1,0 +1,24 @@
+<h1>Lista de TLDs</h1>
+
+<p>Lista de extensões cadastradas.</p>
+
+<p *ngIf="!tlds"><em>Loading...</em></p>
+
+<table class='table' *ngIf="tlds">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Temp. (C)</th>
+            <th>Temp. (F)</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let tld of tlds">
+            <td>{{ tld.extension }}</td>
+            <td>{{ tld.usuarioCriacao }}</td>
+            <td>{{ tld.dataCriacao }}</td>
+            <td>{{ tld.id }}</td>
+        </tr>
+    </tbody>
+</table>
