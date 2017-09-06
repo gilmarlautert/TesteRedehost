@@ -10,22 +10,14 @@ namespace ProjetoRedehost.Controllers
         private readonly IDatabase _cache;
         public WhoisController()
         {
-            // var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
-            // _cache = cnn.GetDatabase();
+            var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
+            _cache = cnn.GetDatabase();
         }
 
         // GET api/values
         [HttpGet] 
         public IEnumerable<string> Get(string text)
         {
-            #if DEBUG
-            if(text == ".com.br")
-            {
-                return new string[] {text};
-            }
-            return new string[]{} ;
-            #endif
-
             var key = "tld";
             var entries = new List<string>();
             foreach (var res2 in _cache.SortedSetScan(key, text))

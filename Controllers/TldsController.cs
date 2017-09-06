@@ -12,9 +12,9 @@ using ProjetoRedehost.Data;
 
 namespace ProjetoRedehost.Controllers
 {
-    #if !DEBUG
-    [Authorize]
-    #endif
+    // #if !DEBUG
+    // [Authorize]
+    // #endif
     [Route("api/[controller]")]
     public class TldsController : Controller
     {
@@ -29,7 +29,7 @@ namespace ProjetoRedehost.Controllers
             _logger = logger;
             _appDbContext=appDbContext;
             
-            var cnn = ConnectionMultiplexer.Connect("redis-17834.c15.us-east-1-2.ec2.cloud.redislabs.com:17834");
+            var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
             _cache = cnn.GetDatabase();
         }
 
