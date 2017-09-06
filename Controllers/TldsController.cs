@@ -29,16 +29,14 @@ namespace ProjetoRedehost.Controllers
             _logger = logger;
             _appDbContext=appDbContext;
             
-            // var cnn = ConnectionMultiplexer.Connect("redis-17834.c15.us-east-1-2.ec2.cloud.redislabs.com:17834");
-            // _cache = cnn.GetDatabase();
+            var cnn = ConnectionMultiplexer.Connect("redis-17834.c15.us-east-1-2.ec2.cloud.redislabs.com:17834");
+            _cache = cnn.GetDatabase();
         }
 
         // GET api/values
         [HttpGet] 
         public IEnumerable<Tld> Get()
         {
-
-            
            return _appDbContext.Tlds;
         }
 
@@ -70,9 +68,8 @@ namespace ProjetoRedehost.Controllers
             value.DataAlteracao = value.DataCriacao = DateTime.Now;     
 
             _appDbContext.Tlds.Add(value);
-            //await _appDbContext.Tlds.AddAsync(value);
             
-            //_cache.SortedSetAdd(_key, value.Extension, 0);
+            _cache.SortedSetAdd(_key, value.Extension, 0);
             _appDbContext.SaveChanges();
             
             return new OkObjectResult(value);
@@ -105,9 +102,9 @@ namespace ProjetoRedehost.Controllers
                     result.Extension = value.Extension;
                     result.UsuarioAlteracao = User.Identity.Name;
                     result.DataAlteracao = DateTime.Now;
-                    //_cache.SortedSetRemove(_key,result.Extension,0);
+                    _cache.SortedSetRemove(_key,result.Extension,0);
                     
-                    //_cache.SortedSetAdd(_key, value.Extension, 0);
+                    _cache.SortedSetAdd(_key, value.Extension, 0);
                     _appDbContext.SaveChanges();
                     return new OkObjectResult(result);
                 }
@@ -130,7 +127,7 @@ namespace ProjetoRedehost.Controllers
             {
                 try
                 {
-                    //_cache.SortedSetRemove(_key,result.Extension);
+                    _cache.SortedSetRemove(_key,result.Extension);
                     _appDbContext.Remove(result);
                     _appDbContext.SaveChanges();
                     return Ok();

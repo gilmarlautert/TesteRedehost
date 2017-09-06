@@ -18,22 +18,22 @@ namespace ProjetoRedehost.Controllers
         [HttpGet] 
         public IEnumerable<string> Get(string text)
         {
-
+            #if DEBUG
             if(text == ".com.br")
             {
                 return new string[] {text};
             }
             return new string[]{} ;
-            
+            #endif
 
-            // var key = "tld";
-            // var entries = new List<string>();
-            // foreach (var res2 in _cache.SortedSetScan(key, text))
-            // {
-            //     entries.Add(res2.Element);
-            // };
+            var key = "tld";
+            var entries = new List<string>();
+            foreach (var res2 in _cache.SortedSetScan(key, text))
+            {
+                entries.Add(res2.Element);
+            };
             
-            // return entries;
+            return entries;
         }
     }
 }
