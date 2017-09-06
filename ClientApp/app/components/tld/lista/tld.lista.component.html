@@ -1,0 +1,34 @@
+<h1>Lista de TLDs</h1>
+
+<p>Lista de extensões cadastradas.</p>
+
+<a class="btn btn-primary" [routerLink]="['/tlds/add']"> + Adicionar</a>
+
+<p *ngIf="!tlds"><em>Carregando...</em></p>
+
+<table class='table' *ngIf="tlds">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Extensão</th>
+            <th>Usuário modificação </th>
+            <th>Data última modificação</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let tld of tlds">
+            <td>{{ tld.id }}</td>
+            <td>{{ tld.extension }}</td>
+            <td>{{ tld.usuarioAlteracao || 'System' }}</td>
+            <td>{{ tld.dataAlteracao | date :'dd/MM/y HH:mm:ss' }}</td>
+
+            <td>
+                <i class="fa fa-lg fa-chevron-circle-right blue" aria-hidden="true"></i>
+            </td>
+            <td>
+                <a class="btn btn-warning" [routerLink]="['/tlds','edit',tld.id]"><span class="glyphicon glyphicon-edit"></span></a>
+                <a class="btn btn-danger" [routerLink]="['/tlds','delete',tld.id]"><span class="glyphicon glyphicon-remove"></span></a>
+            </td>
+        </tr>
+    </tbody>
+</table>

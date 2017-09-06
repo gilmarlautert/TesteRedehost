@@ -1,0 +1,18 @@
+<h1>Whois</h1>
+
+<p>Verifique se o TLD está disponivel</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="input-group">
+            <input [(ngModel)]="text" #ctrl="ngModel" required placeholder="Digite aqui o Tld" class="form-control" id="text">
+            <span class="input-group-btn">
+                <button class="btn btn-default" [disabled]="text.length==0" type="button" (click)="pesquisaWhois()">Pesquisar</button>
+            </span>
+        </div>
+    </div>
+</div>
+
+
+<div *ngIf="lista.length>0 && showAlert" class="alert alert-danger">Tld Já existe</div>
+<div *ngIf="lista.length==0 && showAlert" class="alert alert-success">Tld Disponivel</div>
