@@ -44,7 +44,7 @@ namespace ProjetoRedehost.Controllers
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Logado()
-        {
+        { 
            if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
             {                
                 return Ok(User.Identity.Name);

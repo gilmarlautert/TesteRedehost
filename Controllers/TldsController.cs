@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StackExchange.Redis; 
 using ProjetoRedehost.Data;
+using ProjetoRedehost.Services.tld;
+using ProjetoRedehost.ViewModels;
+using ProjetoRedehost.Exceptions;
 
 namespace ProjetoRedehost.Controllers
 {
@@ -22,57 +25,72 @@ namespace ProjetoRedehost.Controllers
         private readonly ILogger _logger;
         private readonly IDatabase _cache;
 
+        private readonly ITld _tldService;
+
         private readonly string _key = "tld";
         public TldsController(ApplicationDbContext appDbContext,
-            ILogger<TldsController> logger)
+            ILogger<TldsController> logger,
+            ITld tldService)
         {
             _logger = logger;
             _appDbContext=appDbContext;
-            
-            var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
-            _cache = cnn.GetDatabase();
+            _tldService = tldService;
+            // var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
+            // _cache = cnn.GetDatabase();
         }
 
         // GET api/values
         [HttpGet] 
         public IEnumerable<Tld> Get()
         {
-           return _appDbContext.Tlds;
+            return _tldService.ListAll();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-        
-            var result = _appDbContext.Tlds.Find(id);
-            if (result == null)
+            try{
+                var result = _tldService.Find(id);
+                return Ok(result);
+            }
+            catch(NotFoundException)
             {
                 return NotFound();
             }
-            
-            return Ok(result);
         }
 
         // POST api/values
         [HttpPost]
-        public async Task<IActionResult>  Post([FromBody]Tld value)
+        public async Task<IActionResult> Post([FromBody]Tld value)
         {
-            var tld = _appDbContext.Tlds.Where(b => b.Extension == value.Extension).FirstOrDefault();    
-            if (existeTld(value))
+            try{
+                var result = _tldService.Add(value);
+                return Ok(result);
+            }
+            catch(BadRequestException e)
             {
-                    return BadRequest("TLD já existe");
-            }        
-    
-            value.UsuarioAlteracao = value.UsuarioCriacao = User.Identity.Name;
-            value.DataAlteracao = value.DataCriacao = DateTime.Now;     
+                return BadRequest(e.Message);
+            }
+            catch(NotFoundException)
+            {
+                return NotFound();
+            }
 
-            _appDbContext.Tlds.Add(value);
+            // if (existeTld(value))
+            // {
+            //         return BadRequest("TLD já existe");
+            // }        
+    
+            // value.UsuarioAlteracao = value.UsuarioCriacao = User.Identity.Name;
+            // value.DataAlteracao = value.DataCriacao = DateTime.Now;     
+
+            // _appDbContext.Tlds.Add(value);
             
-            _cache.SortedSetAdd(_key, value.Extension, 0);
-            _appDbContext.SaveChanges();
+            // _cache.SortedSetAdd(_key, value.Extension, 0);
+            // _appDbContext.SaveChanges();
             
-            return new OkObjectResult(value);
+            // return new OkObjectResult(value);
         }
 
         private bool existeTld(Tld value)

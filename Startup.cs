@@ -15,14 +15,16 @@ using Microsoft.Extensions.Logging;
 using ProjetoRedehost.Data;
 using ProjetoRedehost.Models;
 using ProjetoRedehost.Services;
+using ProjetoRedehost.Services.tld;
+using ProjetoRedehost.Services.tld.cache;
 
 namespace ProjetoRedehost
 {
     public class Startup
-    {
+    { 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder() 
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
@@ -44,6 +46,7 @@ namespace ProjetoRedehost
         {
             // Add framework services.
             
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -56,6 +59,14 @@ namespace ProjetoRedehost
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
+            services.AddSingleton<ITldCache,TldCacheService>(sp =>
+            {
+                return new TldCacheService(
+                    Configuration.GetConnectionString("RedisConnection"),
+                    Configuration.GetSection("TldKey").ToString()
+                );
+            });
+            services.AddTransient<ITld, TldServices>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
