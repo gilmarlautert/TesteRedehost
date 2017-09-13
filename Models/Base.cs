@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProjetoRedehost.Models
 {
     public abstract class Base
-    {
+    { 
         public int Id { get; set; }
          
         [MaxLength(100)]

@@ -15,14 +15,17 @@ using Microsoft.Extensions.Logging;
 using ProjetoRedehost.Data;
 using ProjetoRedehost.Models;
 using ProjetoRedehost.Services;
+using ProjetoRedehost.Services.tld;
+using ProjetoRedehost.Services.tld.cache;
+using ProjetoRedehost.Services.whois;
 
 namespace ProjetoRedehost
 {
     public class Startup
-    {
+    { 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder() 
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
@@ -44,6 +47,7 @@ namespace ProjetoRedehost
         {
             // Add framework services.
             
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -56,6 +60,22 @@ namespace ProjetoRedehost
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
+            services.AddSingleton<ITldCache,TldCacheService>(sp =>
+            {
+                return new TldCacheService(
+                    Configuration.GetConnectionString("RedisConnection"),
+                    Configuration.GetSection("TldKey").Value
+                );
+            });
+            services.AddSingleton<IWhois, WhoisService>(ws =>
+            { 
+                return new WhoisService(new WhoisStruct()
+                {
+                    URI = Configuration["Whois:URI"],
+                    Param = Configuration["Whois:Param"]
+                });
+            });
+            services.AddTransient<ITld, TldServices>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,8 +106,8 @@ namespace ProjetoRedehost
 
             app.UseGitHubAuthentication(options =>
             {
-                options.ClientId = "e99ec768b8931618da49";
-                options.ClientSecret = "84f9c7a6dc41664bc04e9ccddead4ca2a6ed4c33";
+                options.ClientId = Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = Configuration["Authentication:GitHub:SecretId"];
             });
 
             app.Use(async (context, next) => {

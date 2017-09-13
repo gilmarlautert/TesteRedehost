@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using StackExchange.Redis; 
 using ProjetoRedehost.Data;
+using ProjetoRedehost.Services.tld;
+using ProjetoRedehost.ViewModels;
+using ProjetoRedehost.Exceptions;
 
 namespace ProjetoRedehost.Controllers
 {
@@ -22,57 +25,73 @@ namespace ProjetoRedehost.Controllers
         private readonly ILogger _logger;
         private readonly IDatabase _cache;
 
+        private readonly ITld _tldService;
+
         private readonly string _key = "tld";
         public TldsController(ApplicationDbContext appDbContext,
-            ILogger<TldsController> logger)
+            ILogger<TldsController> logger,
+            ITld tldService)
         {
             _logger = logger;
             _appDbContext=appDbContext;
-            
-            var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
-            _cache = cnn.GetDatabase();
+            _tldService = tldService;
         }
 
-        // GET api/values
+        // GET api/tlds
         [HttpGet] 
-        public IEnumerable<Tld> Get()
+        public IEnumerable<TldViewModel> Get()
         {
-           return _appDbContext.Tlds;
+            return _tldService.ListAll().Select(x=> new TldViewModel{
+                Id = x.Id,
+                Extension = x.Extension,
+                UsuarioAlteracao = x.UsuarioAlteracao,
+                DataAlteracao = x.DataAlteracao
+            });
         }
 
-        // GET api/values/5
+        // GET api/tlds/1
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-        
-            var result = _appDbContext.Tlds.Find(id);
-            if (result == null)
+            try{
+                var tld = _tldService.Find(id);
+                var result = new TldViewModel(){
+                    Id = tld.Id,
+                    Extension = tld.Extension,
+                    UsuarioAlteracao = tld.UsuarioAlteracao,
+                    DataAlteracao = tld.DataAlteracao
+                };
+                return Ok(result);
+            }
+            catch(NotFoundException)
             {
                 return NotFound();
             }
-            
-            return Ok(result);
         }
 
-        // POST api/values
+        // POST api/tlds
         [HttpPost]
-        public async Task<IActionResult>  Post([FromBody]Tld value)
+        public async Task<IActionResult> Post([FromBody]TldViewModel value)
         {
-            var tld = _appDbContext.Tlds.Where(b => b.Extension == value.Extension).FirstOrDefault();    
-            if (existeTld(value))
+            if (!ModelState.IsValid)
             {
-                    return BadRequest("TLD já existe");
-            }        
-    
-            value.UsuarioAlteracao = value.UsuarioCriacao = User.Identity.Name;
-            value.DataAlteracao = value.DataCriacao = DateTime.Now;     
-
-            _appDbContext.Tlds.Add(value);
-            
-            _cache.SortedSetAdd(_key, value.Extension, 0);
-            _appDbContext.SaveChanges();
-            
-            return new OkObjectResult(value);
+                return BadRequest(ModelState);
+            }
+            try{
+                var tld = new Tld() {
+                    Extension = value.Extension
+                };
+                var result = _tldService.Add(tld);
+                return Ok(result);
+            }
+            catch(BadRequestException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch(NotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         private bool existeTld(Tld value)
@@ -85,36 +104,29 @@ namespace ProjetoRedehost.Controllers
             return false;
         }
 
-        // PUT api/values/5
+        // PUT api/tlds/5
         [HttpPut("{id}")]
-        public async Task<IActionResult>  Put(int id, [FromBody]Tld value)
+        public async Task<IActionResult>  Put(int id, [FromBody]TldViewModel value)
         {
-            if (existeTld(value))
+            if (!ModelState.IsValid)
             {
-                    return BadRequest("TLD já existe");
-            }             
-              
-            var result = _appDbContext.Tlds.Find(id);
-            if (result != null)
-            {
-                try
-                {
-                    result.Extension = value.Extension;
-                    result.UsuarioAlteracao = User.Identity.Name;
-                    result.DataAlteracao = DateTime.Now;
-                    _cache.SortedSetRemove(_key,result.Extension,0);
-                    
-                    _cache.SortedSetAdd(_key, value.Extension, 0);
-                    _appDbContext.SaveChanges();
-                    return new OkObjectResult(result);
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                }
+                return BadRequest(ModelState);
             }
-            else{
-               return NotFound();
+            
+            try{
+                var tld = new Tld() {
+                    Extension = value.Extension
+                };
+                _tldService.Edit(tld);
+                return Ok();
+            }
+            catch(BadRequestException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch(NotFoundException)
+            {
+                return NotFound();
             }
         }
 
@@ -122,23 +134,17 @@ namespace ProjetoRedehost.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = _appDbContext.Tlds.SingleOrDefault(b => b.Id == id);
-            if (result != null)
-            {
-                try
-                {
-                    _cache.SortedSetRemove(_key,result.Extension);
-                    _appDbContext.Remove(result);
-                    _appDbContext.SaveChanges();
-                    return Ok();
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex.Message);
-                } 
+            try{
+                _tldService.Remove(id);
+                return Ok();
             }
-            else{
-               return NotFound();
+            catch(BadRequestException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch(NotFoundException)
+            {
+                return NotFound();
             }
         }
     }

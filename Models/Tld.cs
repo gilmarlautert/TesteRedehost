@@ -8,4 +8,4 @@ namespace ProjetoRedehost.Models
         [MaxLength(100)]
         public string Extension { get; set; }
     }
-}   
+}    
