@@ -17,6 +17,7 @@ using ProjetoRedehost.Models;
 using ProjetoRedehost.Services;
 using ProjetoRedehost.Services.tld;
 using ProjetoRedehost.Services.tld.cache;
+using ProjetoRedehost.Services.whois;
 
 namespace ProjetoRedehost
 {
@@ -66,6 +67,14 @@ namespace ProjetoRedehost
                     Configuration.GetSection("TldKey").Value
                 );
             });
+            services.AddSingleton<IWhois, WhoisService>(ws =>
+            { 
+                return new WhoisService(new WhoisStruct()
+                {
+                    URI = Configuration["Whois:URI"],
+                    Param = Configuration["Whois:Param"]
+                });
+            });
             services.AddTransient<ITld, TldServices>();
         }
 
@@ -97,8 +106,8 @@ namespace ProjetoRedehost
 
             app.UseGitHubAuthentication(options =>
             {
-                options.ClientId = "e99ec768b8931618da49";
-                options.ClientSecret = "84f9c7a6dc41664bc04e9ccddead4ca2a6ed4c33";
+                options.ClientId = Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = Configuration["Authentication:GitHub:SecretId"];
             });
 
             app.Use(async (context, next) => {

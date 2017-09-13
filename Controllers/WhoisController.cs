@@ -1,10 +1,9 @@
+using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ProjetoRedehost.Services.tld.cache;
-using StackExchange.Redis;
+using ProjetoRedehost.Services.whois;
 
 namespace ProjetoRedehost.Controllers
 {
@@ -12,11 +11,11 @@ namespace ProjetoRedehost.Controllers
     public class WhoisController : Controller
     {
         private readonly ITldCache _cache;
-        public WhoisController(ITldCache chache)
+        private readonly IWhois _whois;
+        public WhoisController(ITldCache chache,  IWhois whois)
         {
             _cache = chache;
-            // var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
-            // _cache = cnn.GetDatabase();
+            _whois = whois;
         }
 
         // GET api/values
@@ -24,29 +23,19 @@ namespace ProjetoRedehost.Controllers
         public IEnumerable<string> Get()
         {
             return _cache.ListAll();
-            //return new string[] {".com",".com.br"};
-
-            // var key = "tld";
-            // var entries = new List<string>();
-            // foreach (var res2 in _cache.SortedSetScan(key, text))
-            // {
-            //     entries.Add(res2.Element);
-            // };
-            
-            // return entries;
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(string domain)
         {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-            client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
-
-            var stringTask = await client.GetStringAsync("http://whoiz.herokuapp.com/lookup.json?url="+domain);
-            return Ok(stringTask);
+            try
+            {
+                return Ok( await _whois.WhoisAsync(domain) );
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

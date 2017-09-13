@@ -12,6 +12,6 @@ namespace ProjetoRedehost.ViewModels
 
         public string UsuarioAlteracao { get; set; }
 
-        public DateTime DataAlteracao { get; set; }
+        public DateTime? DataAlteracao { get; set; }
     }
 }

@@ -35,23 +35,32 @@ namespace ProjetoRedehost.Controllers
             _logger = logger;
             _appDbContext=appDbContext;
             _tldService = tldService;
-            // var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
-            // _cache = cnn.GetDatabase();
         }
 
-        // GET api/values
+        // GET api/tlds
         [HttpGet] 
-        public IEnumerable<Tld> Get()
+        public IEnumerable<TldViewModel> Get()
         {
-            return _tldService.ListAll();
+            return _tldService.ListAll().Select(x=> new TldViewModel{
+                Id = x.Id,
+                Extension = x.Extension,
+                UsuarioAlteracao = x.UsuarioAlteracao,
+                DataAlteracao = x.DataAlteracao
+            });
         }
 
-        // GET api/values/5
+        // GET api/tlds/1
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             try{
-                var result = _tldService.Find(id);
+                var tld = _tldService.Find(id);
+                var result = new TldViewModel(){
+                    Id = tld.Id,
+                    Extension = tld.Extension,
+                    UsuarioAlteracao = tld.UsuarioAlteracao,
+                    DataAlteracao = tld.DataAlteracao
+                };
                 return Ok(result);
             }
             catch(NotFoundException)
@@ -60,7 +69,7 @@ namespace ProjetoRedehost.Controllers
             }
         }
 
-        // POST api/values
+        // POST api/tlds
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]TldViewModel value)
         {
@@ -83,21 +92,6 @@ namespace ProjetoRedehost.Controllers
             {
                 return NotFound();
             }
-
-            // if (existeTld(value))
-            // {
-            //         return BadRequest("TLD já existe");
-            // }        
-    
-            // value.UsuarioAlteracao = value.UsuarioCriacao = User.Identity.Name;
-            // value.DataAlteracao = value.DataCriacao = DateTime.Now;     
-
-            // _appDbContext.Tlds.Add(value);
-            
-            // _cache.SortedSetAdd(_key, value.Extension, 0);
-            // _appDbContext.SaveChanges();
-            
-            // return new OkObjectResult(value);
         }
 
         private bool existeTld(Tld value)
@@ -110,7 +104,7 @@ namespace ProjetoRedehost.Controllers
             return false;
         }
 
-        // PUT api/values/5
+        // PUT api/tlds/5
         [HttpPut("{id}")]
         public async Task<IActionResult>  Put(int id, [FromBody]TldViewModel value)
         {
@@ -134,34 +128,6 @@ namespace ProjetoRedehost.Controllers
             {
                 return NotFound();
             }
-
-            // if (existeTld(tld))
-            // {
-            //     return BadRequest("TLD já existe");
-            // }             
-              
-            // var result = _appDbContext.Tlds.Find(id);
-            // if (result != null)
-            // {
-            //     try
-            //     {
-            //         result.Extension = value.Extension;
-            //         result.UsuarioAlteracao = User.Identity.Name;
-            //         result.DataAlteracao = DateTime.Now;
-            //         _cache.SortedSetRemove(_key,result.Extension,0);
-                    
-            //         _cache.SortedSetAdd(_key, value.Extension, 0);
-            //         _appDbContext.SaveChanges();
-            //         return new OkObjectResult(result);
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         return BadRequest(ex.Message);
-            //     }
-            // }
-            // else{
-            //    return NotFound();
-            // }
         }
 
         // DELETE api/values/5
@@ -180,24 +146,6 @@ namespace ProjetoRedehost.Controllers
             {
                 return NotFound();
             }
-            // var result = _appDbContext.Tlds.SingleOrDefault(b => b.Id == id);
-            // if (result != null)
-            // {
-            //     try
-            //     {
-            //         _cache.SortedSetRemove(_key,result.Extension);
-            //         _appDbContext.Remove(result);
-            //         _appDbContext.SaveChanges();
-            //         return Ok();
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         return BadRequest(ex.Message);
-            //     } 
-            // }
-            // else{
-            //    return NotFound();
-            // }
         }
     }
 }
