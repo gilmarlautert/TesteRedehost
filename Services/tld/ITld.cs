@@ -9,7 +9,7 @@ namespace ProjetoRedehost.Services.tld
          Tld Add(Tld tld);
          Tld Find(int id);
          void Edit(Tld tld);
-         void Delete(int id);
+         void Remove(int id);
          IEnumerable<Tld> ListAll();
     }
 }

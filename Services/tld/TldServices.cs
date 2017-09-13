@@ -98,7 +98,7 @@ namespace ProjetoRedehost.Services.tld
             }
         }
 
-        public void Delete(int id)
+        public void Remove(int id)
         {
             var result = _dbContext.Tlds.Find(id);
             if (result != null)
