@@ -43,7 +43,7 @@ namespace ProjetoRedehost.Services.tld.cache
         public IEnumerable<string> ListAll()
         {
             var entries = new List<string>();
-            foreach (var res2 in _cache.SortedSetScan(_key, ""))
+            foreach (var res2 in _cache.SortedSetScan(_key))
             {
                 entries.Add(res2.Element);
             };

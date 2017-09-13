@@ -1,4 +1,3 @@
-using AutoMapper;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -57,6 +56,10 @@ namespace ProjetoRedehost.Services.tld
 
         public Tld Add(Tld tld)
         {
+            if (existeTld(tld))
+            {
+                throw new BadRequestException("Tld já cadastrado.");
+            }             
             _dbContext.Tlds.Add(tld);
             _dbContext.SaveChanges();
             if(_saveCache) 

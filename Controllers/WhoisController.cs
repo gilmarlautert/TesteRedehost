@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using ProjetoRedehost.Services.tld.cache;
 using StackExchange.Redis;
 
 namespace ProjetoRedehost.Controllers
@@ -10,9 +11,10 @@ namespace ProjetoRedehost.Controllers
     [Route("api/[controller]")]
     public class WhoisController : Controller
     {
-        private readonly IDatabase _cache;
-        public WhoisController()
+        private readonly ITldCache _cache;
+        public WhoisController(ITldCache chache)
         {
+            _cache = chache;
             // var cnn = ConnectionMultiplexer.Connect("redis-11461.c9.us-east-1-2.ec2.cloud.redislabs.com:11461");
             // _cache = cnn.GetDatabase();
         }
@@ -21,7 +23,8 @@ namespace ProjetoRedehost.Controllers
         [HttpGet] 
         public IEnumerable<string> Get()
         {
-            return new string[] {".com",".com.br"};
+            return _cache.ListAll();
+            //return new string[] {".com",".com.br"};
 
             // var key = "tld";
             // var entries = new List<string>();
