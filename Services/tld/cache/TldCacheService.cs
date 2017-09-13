@@ -10,9 +10,9 @@ namespace ProjetoRedehost.Services.tld.cache
         private readonly string _key;
         public TldCacheService(string connection, string key)
         {
-            // var cnn = ConnectionMultiplexer.Connect(connection);
-            // _cache = cnn.GetDatabase();
-            // _key = key;
+            var cnn = ConnectionMultiplexer.Connect(connection);
+            _cache = cnn.GetDatabase();
+            _key = key;
         }
         public void Add(string extension)
         {
