@@ -63,7 +63,7 @@ namespace ProjetoRedehost
             {
                 return new TldCacheService(
                     Configuration.GetConnectionString("RedisConnection"),
-                    Configuration.GetSection("TldKey").ToString()
+                    Configuration.GetSection("TldKey").Value
                 );
             });
             services.AddTransient<ITld, TldServices>();
